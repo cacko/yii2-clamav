@@ -90,7 +90,7 @@ class ClamdDriver extends AbstractDriver
         $result = $this->getResponse();
 
         if (false != ($filtered = $this->filterScanResult($result))) {
-            $filtered[0] = preg_replace('/^stream:/', $object->getFilename(), $filtered[0]);
+            $filtered[0] = preg_replace('/^stream:/', $object->getFilename() . ':', $filtered[0]);
         }
 
         return $filtered;
