@@ -1,9 +1,9 @@
 <?php
-namespace Avasil\ClamAv\Exception;
+namespace Cacko\ClamAv\Exception;
 
 /**
  * Class ConfigException
- * @package Avasil\ClamAv\Exception
+ * @package Cacko\ClamAv\Exception
  */
 class ConfigurationException extends \InvalidArgumentException
 {

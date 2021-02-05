@@ -1,11 +1,11 @@
 <?php
-namespace Avasil\ClamAv\Driver;
+namespace Cacko\ClamAv\Driver;
 
-use Avasil\ClamAv\Exception\ConfigurationException;
+use Cacko\ClamAv\Exception\ConfigurationException;
 
 /**
  * Class DriverFactory
- * @package Avasil\ClamAv\Driver
+ * @package Cacko\ClamAv\Driver
  */
 class DriverFactory
 {
@@ -41,6 +41,7 @@ class DriverFactory
         }
 
         $driver = static::DRIVERS[$config['driver']];
+        unset($config['driver']);
         return new $driver($config);
     }
 }

@@ -1,11 +1,11 @@
 <?php
-namespace Avasil\ClamAv\Driver;
+namespace Cacko\ClamAv\Driver;
 
-use Avasil\ClamAv\Exception\RuntimeException;
+use Cacko\ClamAv\Exception\RuntimeException;
 
 /**
  * Class ClamdRemoteDriver
- * @package Avasil\ClamAv\Driver
+ * @package Cacko\ClamAv\Driver
  */
 class ClamdRemoteDriver extends ClamdDriver
 {
@@ -38,7 +38,7 @@ class ClamdRemoteDriver extends ClamdDriver
 
         $resource = fopen($path, 'r');
 
-        $this->getSocket()->streamResource($resource);
+        $this->socket()->streamResource($resource);
 
         fclose($resource);
 

@@ -1,15 +1,23 @@
 <?php
-namespace Avasil\ClamAv\Driver;
 
-use Avasil\ClamAv\Exception\RuntimeException;
-use Avasil\ClamAv\Exception\ConfigurationException;
+namespace Cacko\ClamAv\Driver;
+
+use Cacko\ClamAv\Exception\ConfigurationException;
+use Cacko\ClamAv\Exception\RuntimeException;
+use SplFileObject;
 
 /**
  * Class ClamscanDriver
- * @package Avasil\ClamAv\Driver
+ * @package Cacko\ClamAv\Driver
  */
 class ClamscanDriver extends AbstractDriver
 {
+
+    /**
+     * @var int
+     */
+    const BYTES_WRITE = 8192;
+
     /**
      * @var string
      */
@@ -32,54 +40,47 @@ class ClamscanDriver extends AbstractDriver
 
     /**
      * ClamscanDriver constructor.
-     * @param array $options
-     * @throws ConfigurationException
+     * @param array $config
      */
-    public function __construct($options = array())
+    public function __construct(array $config = array())
     {
-        parent::__construct($options);
+        parent::__construct($config);
 
-        if (!is_executable($this->getExecutable())) {
+        if (!$this->executable) {
+            $this->executable = static::EXECUTABLE;
+        }
+
+        if (!is_executable($this->executable)) {
             throw new ConfigurationException(
-                $this->getExecutable() ?
-                    sprintf('%s is not valid executable file', $this->getExecutable()) :
+                $this->executable ?
+                    sprintf('%s is not valid executable file', $this->executable) :
                     'Executable required, please check your config.'
             );
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function ping()
+    public function ping(): bool
     {
         return !!$this->version();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function version()
+    public function version(): string
     {
-        exec($this->getExecutable() . ' -V', $out, $return);
+        exec($this->executable . ' -V', $out, $return);
         if (!$return) {
             return $out[0];
         }
         return '';
     }
 
-    /**
-     * @inheritdoc
-     * @throws RuntimeException
-     */
-    public function scan($path)
+    public function scan($path): array
     {
         $safe_path = escapeshellarg($path);
 
         // Reset the values.
         $return = -1;
 
-        $cmd = $this->getExecutable() . ' ' . sprintf($this->getCommand(), $safe_path);
+        $cmd = $this->executable . ' ' . sprintf(static::COMMAND, $safe_path);
 
         // Execute the command.
         exec($cmd, $out, $return);
@@ -87,18 +88,30 @@ class ClamscanDriver extends AbstractDriver
         return $this->parseResults($return, $out);
     }
 
-    /**
-     * @inheritdoc
-     * @throws RuntimeException
-     */
-    public function scanBuffer($buffer)
+    public function scanBuffer($buffer): array
     {
-        $descriptorSpec = array(
-            0 => array("pipe", "r"),  // stdin is a pipe that clamscan will read from
-            1 => array("pipe", "w"),  // stdout is a pipe that clamscan will write to
-        );
+        return $this->scanPipe(function (&$pipe) use ($buffer) {
+            fwrite($pipe, $buffer);
+        });
+    }
 
-        $cmd = $this->getExecutable() . ' ' . sprintf($this->getCommand(), '-');
+    public function scanResource(SplFileObject $object): array
+    {
+        return $this->scanPipe(function (&$pipe) use ($object) {
+            while ($chunk = $object->fread(static::BYTES_WRITE)) {
+                fwrite($pipe, $chunk);
+            }
+        });
+    }
+
+    protected function scanPipe(\Closure $writeToPipe): array
+    {
+        $descriptorSpec = [
+            0 => ["pipe", "r"],
+            1 => ["pipe", "w"],
+        ];
+
+        $cmd = $this->executable . ' ' . sprintf(static::COMMAND, '-');
 
         $process = @ proc_open($cmd, $descriptorSpec, $pipes);
 
@@ -106,8 +119,8 @@ class ClamscanDriver extends AbstractDriver
             throw new RuntimeException('Failed to open a process file pointer');
         }
 
-        // write data to stdin
-        fwrite($pipes[0], $buffer);
+        $writeToPipe($pipes[0]);
+
         fclose($pipes[0]);
 
         // get response
@@ -124,47 +137,10 @@ class ClamscanDriver extends AbstractDriver
         return $parsed;
     }
 
-    /**
-     * @return string
-     */
-    protected function getExecutable()
-    {
-        return $this->getOption('executable', static::EXECUTABLE);
-    }
-
-    /**
-     * @return string
-     */
-    protected function getCommand()
-    {
-        return $this->getOption('command', static::COMMAND);
-    }
-
-    /**
-     * @return int
-     */
-    protected function getInfected()
-    {
-        return $this->getOption('infected', static::INFECTED);
-    }
-
-    /**
-     * @return int
-     */
-    protected function getClean()
-    {
-        return $this->getOption('clean', static::CLEAN);
-    }
-
-    /**
-     * @param int $return
-     * @param array $out
-     * @return array
-     */
-    private function parseResults($return, array $out)
+    protected function parseResults(int $return, array $out): array
     {
         $result = [];
-        if ($return == $this->getInfected()) {
+        if ($return == static::INFECTED) {
             foreach ($out as $infected) {
                 if (empty($infected)) {
                     break;

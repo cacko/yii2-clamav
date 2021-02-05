@@ -1,11 +1,12 @@
 <?php
-namespace Avasil\ClamAv\Socket;
 
-use Avasil\ClamAv\Exception\ConfigurationException;
+namespace Cacko\ClamAv\Socket;
+
+use Cacko\ClamAv\Exception\ConfigurationException;
 
 /**
  * Class SocketFactory
- * @package Avasil\ClamAv\Socket
+ * @package Cacko\ClamAv\Socket
  */
 class SocketFactory
 {
@@ -23,18 +24,18 @@ class SocketFactory
             );
         }
 
-        $instance = new Socket();
         if (!empty($options['host'])) {
-            $instance->setHost($options['host']);
-            $instance->setPort($options['port']);
-        } else {
-            if (!is_readable($options['socket'])) {
-                throw new ConfigurationException(
-                    sprintf('Socket "%s" does not exist or is not readable.', $options['socket'])
-                );
-            }
-            $instance->setPath($options['socket']);
+            return new Socket([
+                    'host' => $options['host'],
+                    'port' => $options['port']]
+            );
         }
-        return $instance;
+
+        if (!is_readable($options['socket'])) {
+            throw new ConfigurationException(
+                sprintf('Socket "%s" does not exist or is not readable.', $options['socket'])
+            );
+        }
+        return new Socket(['path' => $options['socket']]);
     }
 }

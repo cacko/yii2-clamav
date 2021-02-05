@@ -1,14 +1,17 @@
 <?php
-namespace Avasil\ClamAv\Socket;
 
-use Avasil\ClamAv\Exception\RuntimeException;
-use Avasil\ClamAv\Exception\SocketException;
+namespace Cacko\ClamAv\Socket;
+
+use Cacko\ClamAv\Exception\RuntimeException;
+use Cacko\ClamAv\Exception\SocketException;
+use SplFileObject;
+use yii\base\Component;
 
 /**
  * Class Socket
- * @package Avasil\ClamAv\Socket
+ * @package Cacko\ClamAv\Socket
  */
-class Socket implements SocketInterface
+class Socket extends Component implements SocketInterface
 {
     /**
      * @var int
@@ -23,46 +26,23 @@ class Socket implements SocketInterface
     /**
      * @var resource
      */
-    private $socket;
+    protected $socket;
 
     /**
      * @var string
      */
-    private $host;
+    public $host;
 
     /**
      * @var int
      */
-    private $port;
+    public $port;
 
     /**
      * @var int
      */
-    private $path;
+    public $path;
 
-    /**
-     * @param string $host
-     */
-    public function setHost($host)
-    {
-        $this->host = $host;
-    }
-
-    /**
-     * @param int $port
-     */
-    public function setPort($port)
-    {
-        $this->port = $port;
-    }
-
-    /**
-     * @param int $path
-     */
-    public function setPath($path)
-    {
-        $this->path = $path;
-    }
 
     /**
      * @return void
@@ -79,6 +59,7 @@ class Socket implements SocketInterface
      * @param $data
      * @param int $flags
      * @return false|int
+     * @throws SocketException
      */
     public function send($data, $flags = 0)
     {
@@ -88,15 +69,16 @@ class Socket implements SocketInterface
     }
 
     /**
-     * @param $resource
+     * @param SplFileObject $resource
      * @return false|int
+     * @throws SocketException
      */
-    public function streamResource($resource)
+    public function streamResource(SplFileObject $resource)
     {
         $this->reconnect();
 
         $result = 0;
-        while ($chunk = fread($resource, self::BYTES_WRITE)) {
+        while ($chunk = $resource->fread(self::BYTES_WRITE)) {
             $result += $this->sendChunk($chunk);
         }
 
@@ -108,6 +90,7 @@ class Socket implements SocketInterface
     /**
      * @param $data
      * @return false|int
+     * @throws SocketException
      */
     public function streamData($data)
     {
@@ -163,27 +146,27 @@ class Socket implements SocketInterface
     /**
      * @return false|int
      */
-    private function endStream()
+    protected function endStream()
     {
         $packet = pack('N', 0);
         return $this->send($packet);
     }
 
     /**
-     * @return void
+     * @throws SocketException
      */
-    private function connect()
+    protected function connect(): void
     {
         $this->socket = $this->path ?
-            $this->getUnixSocket() :
-            $this->getInetSocket();
+            $this->unixSocket() :
+            $this->inetSocket();
     }
 
     /**
      * @return resource
      * @throws SocketException
      */
-    private function getInetSocket()
+    protected function inetSocket()
     {
         $socket = @socket_create(AF_INET, SOCK_STREAM, 0);
         if ($socket === false) {
@@ -204,7 +187,7 @@ class Socket implements SocketInterface
      * @return resource
      * @throws SocketException
      */
-    private function getUnixSocket()
+    protected function unixSocket()
     {
         $socket = @ socket_create(AF_UNIX, SOCK_STREAM, 0);
         if ($socket === false) {
@@ -220,9 +203,9 @@ class Socket implements SocketInterface
     }
 
     /**
-     * @return  void
+     * @throws SocketException
      */
-    private function reconnect()
+    protected function reconnect(): void
     {
         if (!is_resource($this->socket)) {
             $this->connect();

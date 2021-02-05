@@ -1,9 +1,11 @@
 <?php
-namespace Avasil\ClamAv\Socket;
+namespace Cacko\ClamAv\Socket;
+
+use SplFileObject;
 
 /**
  * Interface SocketInterface
- * @package Avasil\ClamAv\Socket
+ * @package Cacko\ClamAv\Socket
  */
 interface SocketInterface
 {
@@ -23,7 +25,7 @@ interface SocketInterface
      * @param $resource
      * @return false|int
      */
-    public function streamResource($resource);
+    public function streamResource(SplFileObject $resource);
 
     /**
      * @param $data

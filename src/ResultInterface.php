@@ -1,33 +1,17 @@
 <?php
-namespace Avasil\ClamAv;
+namespace Cacko\ClamAv;
 
 /**
  * Interface ResultInterface
- * @package Avasil\ClamAv
+ * @package Cacko\ClamAv
  */
 interface ResultInterface
 {
-    /**
-     * Return true if no virus was found
-     * @return bool
-     */
-    public function isClean();
 
-    /**
-     * Return true if a virus was found
-     * @return bool
-     */
-    public function isInfected();
+    public function isClean(): bool;
 
-    /**
-     * Returns the list of infected files and virus information
-     * @return array
-     */
-    public function getInfected();
+    public function isInfected(): bool;
 
-    /**
-     * Returns the scanned resource
-     * @return string
-     */
-    public function getTarget();
+    public function getInfected(): array;
+
 }

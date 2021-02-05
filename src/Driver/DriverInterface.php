@@ -1,12 +1,24 @@
 <?php
-namespace Avasil\ClamAv\Driver;
 
-use Avasil\ClamAv\ScannerInterface;
+namespace Cacko\ClamAv\Driver;
+
+use SplFileObject;
 
 /**
  * Interface DriverInterface
- * @package Avasil\ClamAv\Driver
+ * @package Cacko\ClamAv\Driver
  */
-interface DriverInterface extends ScannerInterface
+interface DriverInterface
 {
+
+    public function scan(string $path): array;
+
+    public function scanBuffer(string $buffer): array;
+
+    public function scanResource(SplFileObject $object): array;
+
+    public function ping(): bool;
+
+    public function version(): string;
+
 }

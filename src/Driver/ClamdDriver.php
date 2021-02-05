@@ -1,14 +1,16 @@
 <?php
-namespace Avasil\ClamAv\Driver;
 
-use Avasil\ClamAv\Exception\RuntimeException;
-use Avasil\ClamAv\Socket\Socket;
-use Avasil\ClamAv\Socket\SocketFactory;
-use Avasil\ClamAv\Socket\SocketInterface;
+namespace Cacko\ClamAv\Driver;
+
+use Cacko\ClamAv\Exception\RuntimeException;
+use Cacko\ClamAv\Socket\Socket;
+use Cacko\ClamAv\Socket\SocketFactory;
+use Cacko\ClamAv\Socket\SocketInterface;
+use SplFileObject;
 
 /**
  * Class ClamdDriver
- * @package Avasil\ClamAv\Driver
+ * @package Cacko\ClamAv\Driver
  */
 class ClamdDriver extends AbstractDriver
 {
@@ -25,7 +27,7 @@ class ClamdDriver extends AbstractDriver
     /**
      * @var string
      */
-    const SOCKET_PATH = '/var/run/clamav/clamd.ctl';
+    const SOCKET_PATH = '/var/run/clamav/clamd.sock';
 
     /**
      * @var string
@@ -35,32 +37,21 @@ class ClamdDriver extends AbstractDriver
     /**
      * @var Socket
      */
-    private $socket;
+    protected $socketInstance;
 
-    /**
-     * ping command is used to see whether Clamd is alive or not
-     * @return bool
-     */
-    public function ping()
+    public function ping(): bool
     {
         $this->sendCommand('PING');
         return trim($this->getResponse()) === 'PONG';
     }
 
-    /**
-     * version is used to receive the version of Clamd
-     * @return string
-     */
-    public function version()
+    public function version(): string
     {
         $this->sendCommand('VERSION');
         return trim($this->getResponse());
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function scan($path)
+    public function scan(string $path): array
     {
         if (is_dir($path)) {
             $command = 'CONTSCAN';
@@ -75,14 +66,11 @@ class ClamdDriver extends AbstractDriver
         return $this->filterScanResult($result);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function scanBuffer($buffer)
+    public function scanBuffer(string $buffer): array
     {
         $this->sendCommand('INSTREAM');
 
-        $this->getSocket()->streamData($buffer);
+        $this->socket()->streamData($buffer);
 
         $result = $this->getResponse();
 
@@ -93,11 +81,26 @@ class ClamdDriver extends AbstractDriver
         return $filtered;
     }
 
+    public function scanResource(SplFileObject $object): array
+    {
+        $this->sendCommand('INSTREAM');
+
+        $this->socket()->streamResource($object);
+
+        $result = $this->getResponse();
+
+        if (false != ($filtered = $this->filterScanResult($result))) {
+            $filtered[0] = preg_replace('/^stream:/', $object->getFilename(), $filtered[0]);
+        }
+
+        return $filtered;
+    }
+
     /**
      * @param string $command
      * @return int|false
      */
-    protected function sendCommand($command)
+    protected function sendCommand(string $command)
     {
         return $this->sendRequest(sprintf(static::COMMAND, $command));
     }
@@ -110,32 +113,30 @@ class ClamdDriver extends AbstractDriver
         $this->socket = $socket;
     }
 
-    /**
-     * @return SocketInterface
-     */
-    protected function getSocket()
+
+    protected function socket(): SocketInterface
     {
-        if (!$this->socket) {
-            if ($this->getOption('socket')) { // socket set in config
+        if (!$this->socketInstance) {
+            if ($this->socket) { // socket set in config
                 $options = [
-                    'socket' => $this->getOption('socket')
+                    'socket' => $this->socket
                 ];
-            } elseif ($this->getOption('host')) { // host set in config
+            } elseif ($this->host) { // host set in config
                 $options = [
-                    'host' => $this->getOption('host'),
-                    'port' => $this->getOption('port', static::PORT)
+                    'host' => $this->host,
+                    'port' => $this->port ?: static::PORT
                 ];
             } else { // use defaults
                 $options = [
-                    'socket' => $this->getOption('socket', static::SOCKET_PATH),
-                    'host' => $this->getOption('host', static::HOST),
-                    'port' => $this->getOption('port', static::PORT)
+                    'socket' => $this->socket ?: static::SOCKET_PATH,
+                    'host' => $this->host ?: static::HOST,
+                    'port' => $this->port ?: static::PORT
                 ];
             }
-            $this->socket = SocketFactory::create($options);
+            $this->socketInstance = SocketFactory::create($options);
         }
 
-        return $this->socket;
+        return $this->socketInstance;
     }
 
     /**
@@ -146,7 +147,7 @@ class ClamdDriver extends AbstractDriver
      */
     protected function sendRequest($data, $flags = 0)
     {
-        if (false == ($bytes = $this->getSocket()->send($data, $flags))) {
+        if (false == ($bytes = $this->socket()->send($data, $flags))) {
             throw new RuntimeException('Cannot write to socket');
         }
         return $bytes;
@@ -158,17 +159,12 @@ class ClamdDriver extends AbstractDriver
      */
     protected function getResponse($flags = MSG_WAITALL)
     {
-        $data = $this->getSocket()->receive($flags);
-        $this->getSocket()->close();
+        $data = $this->socket()->receive($flags);
+        $this->socket()->close();
         return $data;
     }
 
-    /**
-     * @param string $result
-     * @param string $filter
-     * @return array
-     */
-    protected function filterScanResult($result, $filter = 'FOUND')
+    protected function filterScanResult(string $result, $filter = 'FOUND'): array
     {
         $result = explode("\n", $result);
         $result = array_filter($result);

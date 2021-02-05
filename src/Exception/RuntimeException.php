@@ -1,9 +1,9 @@
 <?php
-namespace Avasil\ClamAv\Exception;
+namespace Cacko\ClamAv\Exception;
 
 /**
  * Class RuntimeException
- * @package Avasil\ClamAv\Exception
+ * @package Cacko\ClamAv\Exception
  */
 class RuntimeException extends \RuntimeException
 {

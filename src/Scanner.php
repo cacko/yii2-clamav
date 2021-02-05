@@ -1,54 +1,49 @@
 <?php
-namespace Avasil\ClamAv;
 
-use Avasil\ClamAv\Driver\DriverFactory;
-use Avasil\ClamAv\Driver\DriverInterface;
-use Avasil\ClamAv\Exception\RuntimeException;
+namespace Cacko\ClamAv;
 
-class Scanner implements ScannerInterface
+use Cacko\ClamAv\Driver\DriverFactory;
+use Cacko\ClamAv\Driver\DriverInterface;
+use Cacko\ClamAv\Exception\RuntimeException;
+use SplFileObject;
+use yii\base\Component;
+
+class Scanner extends Component implements ScannerInterface
 {
     /**
      * @var DriverInterface
      */
-    protected $driver;
+    protected $driverInstance;
 
-    /**
-     * @var array
-     */
-    protected $options = [
-        'driver' => 'default'
-    ];
+    protected $config;
 
-    /**
-     * Scanner constructor.
-     * @param array $options
-     */
-    public function __construct(array $options = array())
+    public $driver;
+
+    public $executable;
+
+    public $socket;
+
+    public $host;
+
+    public $port;
+
+    public function __construct($config = [])
     {
-        $this->options = array_merge($this->options, $options);
+        $this->config = $config;
+        parent::__construct($config);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function ping()
+    public function ping(): bool
     {
-        return $this->getDriver()->ping();
+        return $this->driver()->ping();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function version()
+    public function version(): string
     {
-        return $this->getDriver()->version();
+        return $this->driver()->version();
     }
 
-    /**
-     * @inheritdoc
-     * @throws RuntimeException
-     */
-    public function scan($path)
+    public function scan($path): ResultInterface
     {
         if (!is_readable($path)) {
             throw new RuntimeException(
@@ -56,20 +51,15 @@ class Scanner implements ScannerInterface
             );
         }
 
-        // make sure clamav works with real paths
         $real_path = realpath($path);
 
         return $this->parseResults(
             $path,
-            $this->getDriver()->scan($real_path)
+            $this->driver()->scan($real_path)
         );
     }
 
-    /**
-     * @inheritdoc
-     * @throws RuntimeException
-     */
-    public function scanBuffer($buffer)
+    public function scanBuffer($buffer): ResultInterface
     {
         if (!is_scalar($buffer) && (!is_object($buffer) || !method_exists($buffer, '__toString'))) {
             throw new RuntimeException(
@@ -79,37 +69,30 @@ class Scanner implements ScannerInterface
 
         return $this->parseResults(
             'buffer',
-            $this->getDriver()->scanBuffer($buffer)
+            $this->driver()->scanBuffer($buffer)
         );
     }
 
-    /**
-     * @return DriverInterface
-     */
-    public function getDriver()
+
+    public function scanResource(SplFileObject $object): ResultInterface
     {
-        if (!$this->driver) {
-            $this->driver = DriverFactory::create($this->options);
+        return $this->parseResults(
+            $object->getFilename(),
+            $this->driver()->scanResource($object)
+        );
+    }
+
+    protected function driver(): DriverInterface
+    {
+        if (!$this->driverInstance) {
+            $this->driverInstance = DriverFactory::create($this->config);
         }
-        return $this->driver;
+        return $this->driverInstance;
     }
 
-    /**
-     * @param DriverInterface $driver
-     */
-    public function setDriver($driver)
+    protected function parseResults($path, array $infected): ResultInterface
     {
-        $this->driver = $driver;
-    }
-
-    /**
-     * @param $path
-     * @param array $infected
-     * @return ResultInterface
-     */
-    protected function parseResults($path, array $infected)
-    {
-        $result = new Result($path);
+        $result = new Result(['path' => $path]);
 
         foreach ($infected as $line) {
             list($file, $virus) = explode(':', $line);

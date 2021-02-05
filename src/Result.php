@@ -1,89 +1,53 @@
 <?php
-namespace Avasil\ClamAv;
+
+namespace Cacko\ClamAv;
+
+use yii\base\Component;
 
 /**
  * Interface ResultInterface
- * @package Avasil\ClamAv
+ * @package Cacko\ClamAv
  */
-class Result implements ResultInterface
+class Result extends Component implements ResultInterface
 {
-    /**
-     * @var string
-     */
-    private $target;
+
+    public $path;
 
     /**
      * @var array
      */
-    private $infected;
+    protected $infected;
 
-    /**
-     * Result constructor.
-     * @param string $target
-     * @param array $infected
-     */
-    public function __construct($target, array $infected = [])
-    {
-        $this->target = $target;
-        $this->infected = $infected;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isClean()
+    public function isClean(): bool
     {
         return !$this->isInfected();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function isInfected()
+    public function isInfected(): bool
     {
-        return count($this->infected);
+        return !!count($this->infected);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getInfected()
+    public function getInfected(): array
     {
         return $this->infected;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getTarget()
-    {
-        return $this->target;
-    }
-
-    /**
-     * @param string $file
-     * @param string $virus
-     */
-    public function addInfected($file, $virus)
+    public function addInfected(string $file, string $virus)
     {
         $this->infected[$file] = $virus;
     }
 
-    /**
-     * @param array $infected
-     */
-    public function setInfected($infected)
+
+    public function setInfected(array $infected)
     {
         $this->infected = $infected;
     }
 
-    /**
-     * @return string
-     */
-    public function __toString()
+    public function __toString(): string
     {
         $str = [];
-        foreach ($this->infected as $k => $v) {
+        foreach ((array)$this->infected as $k => $v) {
             $str[] = $k . ': ' . $v;
         }
         return join(PHP_EOL, $str);

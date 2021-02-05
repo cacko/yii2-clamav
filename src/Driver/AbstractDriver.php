@@ -1,27 +1,22 @@
 <?php
-namespace Avasil\ClamAv\Driver;
 
-use Avasil\ClamAv\Traits\GetOptionTrait;
+namespace Cacko\ClamAv\Driver;
+
+use yii\base\Component;
 
 /**
  * Class AbstractDriver
- * @package Avasil\ClamAv\Driver
+ * @package Cacko\ClamAv\Driver
  */
-abstract class AbstractDriver implements DriverInterface
+abstract class AbstractDriver extends Component implements DriverInterface
 {
-    use GetOptionTrait;
 
-    /**
-     * @var array
-     */
-    protected $options;
+    public $executable;
 
-    /**
-     * ClamscanDriver constructor.
-     * @param array $options
-     */
-    public function __construct($options = array())
-    {
-        $this->options = $options;
-    }
+    public $socket;
+
+    public $host;
+
+    public $port;
+
 }
