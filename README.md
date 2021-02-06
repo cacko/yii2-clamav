@@ -7,9 +7,7 @@ it's a fork of https://github.com/vanagnostos/php-clamav adapted for Yii2
 composer require cacko/yii2-clamav
 ```
 
-## Usage
-
-in your config file
+## Configuration
 
 ```PHP
 <?php
@@ -21,8 +19,45 @@ in your config file
             'socket' => '/var/run/clamav/clamd.sock'
         ],
 ```
+or
+```PHP
+<?php
+    'components' => [
+    .....
+        'clamav' => [
+            'class' => 'Cacko\ClamAv\Scanner',
+            'driver' => 'clamscan',
+            'executable' => '/usr/local/bin/clamdscan'
+        ],
+```
+or
+```PHP
+<?php
+    'components' => [
+    .....
+        'clamav' => [
+            'class' => 'Cacko\ClamAv\Scanner',
+            'driver' => 'clamd_local',
+            'host' => '127.0.0.1',
+            'port' => 3310
+        ],
+```
+or
+```PHP
+<?php
+    'components' => [
+    .....
+        'clamav' => [
+            'class' => 'Cacko\ClamAv\Scanner',
+            'driver' => 'clamd_remote',
+            'host' => '192.168.0.10',
+            'port' => 3310
+        ],
+```
 
-Scan file
+## Usage
+
+#### Scan file
 ```PHP
 <?php
 
@@ -30,7 +65,7 @@ $result = Yii::$app->clamav->scan('my_file.txt');
 
 ```
 
-Scan text
+#### Scan text
 ```PHP
 <?php
 
@@ -38,7 +73,7 @@ $result = Yii::$app->clamav->scanBuffer(file_get_contents('my_file.txt'));
 
 ```
 
-Scan file as object
+#### Scan file as object
 ```PHP
 <?php
 
