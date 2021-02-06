@@ -132,8 +132,9 @@ class Socket extends Component implements SocketInterface
     /**
      * @param $chunk
      * @return false|int
+     * @throws SocketException
      */
-    private function sendChunk($chunk)
+    protected function sendChunk($chunk)
     {
         $size = pack('N', strlen($chunk));
         // size packet
@@ -145,6 +146,7 @@ class Socket extends Component implements SocketInterface
 
     /**
      * @return false|int
+     * @throws SocketException
      */
     protected function endStream()
     {

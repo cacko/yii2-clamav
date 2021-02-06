@@ -1,7 +1,9 @@
 <?php
+
 namespace Cacko\ClamAv\Driver;
 
 use Cacko\ClamAv\Exception\RuntimeException;
+use SplFileObject;
 
 /**
  * Class ClamdRemoteDriver
@@ -24,11 +26,7 @@ class ClamdRemoteDriver extends ClamdDriver
         parent::__construct($options);
     }
 
-    /**
-     * @inheritdoc
-     * @throws RuntimeException
-     */
-    public function scan($path)
+    public function scan(string $path): array
     {
         if (!is_file($path)) {
             throw new RuntimeException('Remote scan of directory is not supported');
@@ -36,11 +34,9 @@ class ClamdRemoteDriver extends ClamdDriver
 
         $this->sendCommand('INSTREAM');
 
-        $resource = fopen($path, 'r');
+        $resource = new SplFileObject($path, 'rb');
 
         $this->socket()->streamResource($resource);
-
-        fclose($resource);
 
         $result = $this->getResponse();
 
