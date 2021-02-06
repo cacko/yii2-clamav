@@ -3,7 +3,9 @@ yii2-clamav is a Yii2 component to clamd / clamscan that allows you to scan file
 it's a fork of https://github.com/vanagnostos/php-clamav adapted for Yii2
 
 ## Installation
-```composer require cacko/yii2-clamav```
+```Shell
+composer require cacko/yii2-clamav
+```
 
 ## Usage
 
