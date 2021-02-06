@@ -22,7 +22,7 @@
     "ext-sockets": "*",
     "yiisoft/yii2-bootstrap": "2.*"
   },
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
   "repositories": [
     {
       "type": "composer",
