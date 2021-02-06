@@ -55,6 +55,16 @@ composer require cacko/yii2-clamav
             'port' => 3310
         ],
 ```
+#### dummy driver - does nothing
+```PHP
+<?php
+    'components' => [
+    .....
+        'clamav' => [
+            'class' => 'Cacko\ClamAv\Scanner',
+            'driver' => 'dummy',
+        ],
+```
 
 ## Usage
 
