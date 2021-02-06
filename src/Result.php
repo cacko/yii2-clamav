@@ -16,7 +16,7 @@ class Result extends Component implements ResultInterface
     /**
      * @var array
      */
-    protected $infected;
+    protected $infected = [];
 
     public function isClean(): bool
     {
