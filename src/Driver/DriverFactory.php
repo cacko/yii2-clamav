@@ -18,6 +18,7 @@ class DriverFactory
         'clamd_local' => ClamdDriver::class,
         'clamd_remote' => ClamdRemoteDriver::class,
         'default' => ClamscanDriver::class,
+        'dummy' => DummyDriver::class
     ];
 
     /**
