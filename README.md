@@ -9,6 +9,7 @@ composer require cacko/yii2-clamav
 
 ## Configuration
 
+#### via unix socker
 ```PHP
 <?php
     'components' => [
@@ -19,7 +20,7 @@ composer require cacko/yii2-clamav
             'socket' => '/var/run/clamav/clamd.sock'
         ],
 ```
-or
+#### using executable
 ```PHP
 <?php
     'components' => [
@@ -30,7 +31,7 @@ or
             'executable' => '/usr/local/bin/clamdscan'
         ],
 ```
-or
+#### using local tcp socket
 ```PHP
 <?php
     'components' => [
@@ -42,7 +43,7 @@ or
             'port' => 3310
         ],
 ```
-or
+#### using remote tcp socket
 ```PHP
 <?php
     'components' => [
