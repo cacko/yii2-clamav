@@ -2,6 +2,7 @@
   "name": "cacko/yii2-clamav",
   "description": "A PHP interface to clamd / clamscan.",
   "license": "MIT",
+  "type": "yii2-extension",
   "authors": [
     {
       "name": "Vasil Anagnostos",
