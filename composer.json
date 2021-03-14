@@ -18,6 +18,9 @@
       "Cacko\\ClamAv\\": "src/"
     }
   },
+  "extra": {
+    "bootstrap": "Cacko\\ClamAv\\Bootstrap"
+  },
   "require": {
     "php": ">=7.3",
     "ext-sockets": "*",

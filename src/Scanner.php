@@ -27,6 +27,8 @@ class Scanner extends Component implements ScannerInterface
 
     public $port;
 
+    const COMPONENT_ID = 'clamav';
+
     public function __construct($config = [])
     {
         $this->config = $config;

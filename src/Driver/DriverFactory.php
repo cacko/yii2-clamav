@@ -1,4 +1,5 @@
 <?php
+
 namespace Cacko\ClamAv\Driver;
 
 use Cacko\ClamAv\Exception\ConfigurationException;
@@ -13,12 +14,20 @@ class DriverFactory
      * Available drivers
      * @var array
      */
+
+
+    const DRIVER_CLAMSCAN  = 'clamscan';
+    const DRIVER_LOCAL = 'clamd_local';
+    const DRIVER_REMOTE = 'clamd_remote';
+    const DRIVER_DEFAULT = 'default';
+    const DRIVER_DUMMY = 'dummy';
+
     const DRIVERS = [
-        'clamscan' => ClamscanDriver::class,
-        'clamd_local' => ClamdDriver::class,
-        'clamd_remote' => ClamdRemoteDriver::class,
-        'default' => ClamscanDriver::class,
-        'dummy' => DummyDriver::class
+        self::DRIVER_CLAMSCAN => ClamscanDriver::class,
+        self::DRIVER_LOCAL => ClamdDriver::class,
+        self::DRIVER_REMOTE => ClamdRemoteDriver::class,
+        self::DRIVER_DEFAULT => ClamscanDriver::class,
+        self::DRIVER_DUMMY => DummyDriver::class
     ];
 
     /**
